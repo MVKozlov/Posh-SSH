@@ -88,17 +88,11 @@ namespace SSH
                 ErrorRecord erec = null;
                 client.HostKeyReceived += delegate (object sender, HostKeyEventArgs e)
                 {
-                    var sb = new StringBuilder();
-                    foreach (var b in e.FingerPrint)
-                    {
-                        sb.AppendFormat("{0:x}:", b);
-                    }
-                    var fingerPrint = sb.ToString().Remove(sb.ToString().Length - 1);
                     record = new KnownHostRecord()
                     {
                         HostName = computer,
                         HostKeyName = e.HostKeyName,
-                        Fingerprint = fingerPrint,
+                        Fingerprint = e.FingerPrintSHA256,
                     };
                     e.CanTrust = false;
                 };

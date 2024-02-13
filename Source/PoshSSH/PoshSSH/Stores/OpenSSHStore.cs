@@ -52,19 +52,10 @@ namespace SSH.Stores
                     var (hostname, keyName, pubKey) = (hostparts[0], hostparts[1], hostparts[2]);
 
                     string fingerprint;
-                    using (var md5 = MD5.Create())
+                    using (var sha256 = System.Security.Cryptography.SHA256.Create())
                     {
                         var pubkey = Convert.FromBase64String(pubKey);
-                        var fp_as_bytes = md5.ComputeHash(pubkey);
-                        // commented out because realization below encode bytes 10,01,10 as 10:1:10 instead of classic 10:01:10
-                        // so make it compatible
-                        // fingerprint = System.BitConverter.ToString(fp_as_bytes).Replace('-', ':').ToLower();
-                        var sb = new StringBuilder();
-                        foreach (var b in fp_as_bytes)
-                        {
-                            sb.AppendFormat("{0:x}:", b);
-                        }
-                        fingerprint = sb.ToString().Remove(sb.ToString().Length - 1);
+                        fingerprint = Convert.ToBase64String(sha256.ComputeHash(pubkey)).Replace("=", "");
                     }
 
                     // hashed hostname, can be only one on line
@@ -148,7 +139,7 @@ namespace SSH.Stores
             }
             foreach (var hashedKey in hashedKeys)
             {
-                using (HMACSHA1 hmac = new HMACSHA1(hashedKey.Salt))
+                using (var hmac = new HMACSHA1(hashedKey.Salt))
                 {
                     var hostHash = Convert.ToBase64String(hmac.ComputeHash(hostbytes));
                     if (hostHash.Equals(hashedKey.HostHash))
